@@ -4,12 +4,12 @@
  * ============================================================ */
 
 const firebaseConfig = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT.firebaseapp.com",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "000000000000",
-  appId:             "YOUR_APP_ID"
+  apiKey: "AIzaSyAg5b0llifBXcZwdrg14SMXocxctnaGFhk",
+  authDomain: "slickstock-2c512.firebaseapp.com",
+  projectId: "slickstock-2c512",
+  storageBucket: "slickstock-2c512.firebasestorage.app",
+  messagingSenderId: "59971282695",
+  appId: "1:59971282695:web:2169d269173705586c07a2"
 };
 
 /* ── 앱 전역 상수 ── */
