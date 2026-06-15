@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#F2F2F7">
+  <title>슬쩍 모의투자</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Firebase SDK (compat v9) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<!-- ╔══════════════════════════════════════════════════════════╗
+     ║  로그인 / 회원가입                                       ║
+     ╚══════════════════════════════════════════════════════════╝ -->
+<div id="loginPage" class="login-page hidden">
+  <div class="login-hero">
+    <div class="login-bg-art">
+      <svg viewBox="0 0 400 400" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="g1" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0%" stop-color="#FF3B30" stop-opacity="0.06"/>
+            <stop offset="50%" stop-color="#FF9500" stop-opacity="0.04"/>
+            <stop offset="100%" stop-color="#007AFF" stop-opacity="0.06"/>
+          </linearGradient>
+        </defs>
+        <rect fill="url(#g1)" width="400" height="400"/>
+        <polyline fill="none" stroke="#FF3B30" stroke-width="2" stroke-opacity="0.12"
+          points="0,320 40,310 80,290 120,295 160,260 200,240 240,250 280,200 320,180 360,190 400,150"/>
+        <polyline fill="none" stroke="#FF3B30" stroke-width="1.5" stroke-opacity="0.08"
+          points="0,340 50,335 100,325 150,330 200,300 250,310 300,270 350,260 400,230"/>
+        <polyline fill="none" stroke="#007AFF" stroke-width="1.5" stroke-opacity="0.08"
+          points="0,360 60,350 120,355 180,340 240,320 300,330 360,310 400,290"/>
+      </svg>
+    </div>
+    <div class="login-brand">
+      <div class="login-brand-tag">MOCK STOCK TRADING</div>
+      <h1>슬쩍<br><span>모의투자</span></h1>
+      <p>실제 주식 데이터로 배우는<br>나만의 투자 시뮬레이터</p>
+    </div>
+  </div>
+  <div class="login-form-area">
+    <input class="login-field" placeholder="이름" id="nameInput" autocomplete="off">
+    <input class="login-field" type="password" placeholder="비밀번호 6자리" maxlength="6" inputmode="numeric" id="pwInput">
+    <button class="login-btn" id="authBtn">로그인</button>
+    <div class="login-bottom">
+      <span id="toggleAuthLabel">처음이라면?</span>
+      <a id="toggleAuth">회원가입</a>
+    </div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════════════╗
+     ║  메인 앱                                                 ║
+     ╚══════════════════════════════════════════════════════════╝ -->
+<div id="mainApp" style="display:none;">
+
+  <!-- 헤더 -->
+  <div class="header">
+    <div class="header-row">
+      <div>
+        <div class="header-title" id="headerTitle">거래소</div>
+        <div style="margin-top:2px;">
+          <span class="market-status">
+            <span class="market-dot closed" id="marketDot"></span>
+            <span id="marketLabel">장 마감</span>
+          </span>
+        </div>
+      </div>
+      <div class="header-right">
+        <div style="text-align:right;">
+          <div style="font-size:13px;font-weight:700;" id="headerUserName">-</div>
+          <div style="font-size:12px;color:var(--accent);font-weight:800;" id="headerBalance">₩0</div>
+        </div>
+        <button class="logout-btn" onclick="AppUI.logout()">로그아웃</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 거래소 탭 ── -->
+  <div id="page-exchange" class="page active">
+    <div class="page-inner">
+      <div class="sort-tabs">
+        <button class="sort-tab active" data-sort="all">전체</button>
+        <button class="sort-tab" data-sort="up">상승순 🔴</button>
+        <button class="sort-tab" data-sort="down">하락순 🔵</button>
+        <button class="sort-tab" data-sort="volume">거래량순</button>
+        <button class="sort-tab" data-sort="fav">관심 ⭐</button>
+      </div>
+      <div class="stock-list" id="exchangeContent"></div>
+    </div>
+  </div>
+
+  <!-- ── 내 계좌 탭 ── -->
+  <div id="page-account" class="page">
+    <div class="page-inner" id="accountContent"></div>
+  </div>
+
+  <!-- ── 랭킹 탭 ── -->
+  <div id="page-ranking" class="page">
+    <div class="page-inner" id="rankingContent"></div>
+  </div>
+
+  <!-- ── 관리자 탭 ── -->
+  <div id="page-admin" class="page">
+    <div class="page-inner" id="adminContent"></div>
+  </div>
+
+  <!-- 탭바 -->
+  <div class="tab-bar">
+    <div class="tab-item active" data-tab="exchange"
+         onclick="AppUI.switchTab('exchange', this)">
+      <span class="tab-icon">📊</span><span class="tab-label">거래소</span>
+    </div>
+    <div class="tab-item" data-tab="account"
+         onclick="AppUI.switchTab('account', this)">
+      <span class="tab-icon">💰</span><span class="tab-label">내 계좌</span>
+    </div>
+    <div class="tab-item" data-tab="ranking"
+         onclick="AppUI.switchTab('ranking', this)">
+      <span class="tab-icon">🏆</span><span class="tab-label">랭킹</span>
+    </div>
+    <div class="tab-item" data-tab="admin"
+         onclick="AppUI.handleAdminTab(this)">
+      <span class="tab-icon">⚙️</span><span class="tab-label">관리자</span>
+    </div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════════════╗
+     ║  종목 상세 오버레이                                       ║
+     ╚══════════════════════════════════════════════════════════╝ -->
+<div class="detail-overlay" id="detailOverlay">
+  <div class="detail-header">
+    <button class="detail-back" onclick="Detail.close()">←</button>
+    <div class="detail-header-name" id="detailHeaderName"></div>
+  </div>
+  <div class="detail-body" id="detailBody"></div>
+  <div class="detail-buy-bar">
+    <button class="detail-btn buy" onclick="Detail.buy()">매수하기</button>
+    <button class="detail-btn sell" onclick="Detail.sell()">매도하기</button>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════════════╗
+     ║  매수/매도 모달 (하단 시트)                                ║
+     ╚══════════════════════════════════════════════════════════╝ -->
+<div class="modal-overlay" id="tradeModal">
+  <div class="modal-sheet" id="tradeModalBody"></div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════════════╗
+     ║  관리자 PIN 모달                                         ║
+     ╚══════════════════════════════════════════════════════════╝ -->
+<div class="pin-overlay" id="pinOverlay">
+  <div class="pin-modal">
+    <div class="pin-title">🔒 관리자 인증</div>
+    <div class="pin-desc">6자리 비밀번호를 입력하세요</div>
+    <div class="pin-dots" id="pinDots">
+      <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+      <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+    </div>
+    <div class="pin-keypad">
+      <button class="pin-key" onclick="Admin.pinInput(1)">1</button>
+      <button class="pin-key" onclick="Admin.pinInput(2)">2</button>
+      <button class="pin-key" onclick="Admin.pinInput(3)">3</button>
+      <button class="pin-key" onclick="Admin.pinInput(4)">4</button>
+      <button class="pin-key" onclick="Admin.pinInput(5)">5</button>
+      <button class="pin-key" onclick="Admin.pinInput(6)">6</button>
+      <button class="pin-key" onclick="Admin.pinInput(7)">7</button>
+      <button class="pin-key" onclick="Admin.pinInput(8)">8</button>
+      <button class="pin-key" onclick="Admin.pinInput(9)">9</button>
+      <button class="pin-key fn" onclick="Admin.closePin()">취소</button>
+      <button class="pin-key" onclick="Admin.pinInput(0)">0</button>
+      <button class="pin-key fn" onclick="Admin.pinDelete()">⌫</button>
+    </div>
+  </div>
+</div>
+
+<!-- 토스트 -->
+<div class="toast" id="toast"></div>
+
+<!-- 로딩 -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════════════╗
+     ║  JS 모듈 (순서 중요!)                                    ║
+     ╚══════════════════════════════════════════════════════════╝ -->
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/stock-data.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/exchange.js"></script>
+<script src="js/detail.js"></script>
+<script src="js/trade.js"></script>
+<script src="js/account.js"></script>
+<script src="js/ranking.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
