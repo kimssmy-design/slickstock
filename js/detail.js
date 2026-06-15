@@ -49,10 +49,15 @@ const Detail = {
 
       ${this.renderStats(stock)}
 
+      ${Chart.getHTML(stock.code)}
+
       ${this.renderMyHolding(stock)}
     `;
 
     document.getElementById('detailOverlay').classList.add('show');
+
+    // 차트 렌더링 (DOM 삽입 후)
+    setTimeout(() => Chart.draw(stock.code), 50);
   },
 
   /* 핵심 투자 정보 카드 */
