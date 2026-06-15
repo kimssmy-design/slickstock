@@ -20,6 +20,10 @@ const CONFIG = {
   MARKET_CLOSE_MIN:   30,
   DEFAULT_CAPITAL:    10000000,  // 기본 초기자본 1000만원
   DEFAULT_ADMIN_PIN:  '000000',  // 기본 관리자 PIN
+
+  // ★ Google Sheets 실시간 시세 URL (아래 안내대로 설정)
+  SHEET_CSV_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQPV2p0XlCwT_f1LVpcSNfEYJ9tSIfycFJIsyKf8Tw09VZN_EhkwrtjKIp_loKWXDfbKIsGHHJnEsFM/pub?output=csv',
+
   COLLECTIONS: {
     USERS:        'sl_users',
     STOCKS:       'sl_stocks',

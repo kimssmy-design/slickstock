@@ -79,8 +79,18 @@ const Admin = {
           <button class="admin-btn" style="flex:1;background:var(--text2);" onclick="Admin.setMarket(null)">자동</button>
         </div>
         <div style="margin-top:8px;">
-          <button class="admin-btn blue" style="width:100%;" onclick="Admin.updatePrices()">📡 실시간 주가 업데이트</button>
+          <button class="admin-btn blue" style="width:100%;" onclick="Admin.updatePrices()">
+            ${PriceFetch.isConfigured() ? '📡 실시간 시세 가져오기' : '📡 주가 업데이트 (시뮬레이션)'}
+          </button>
         </div>
+        ${PriceFetch.isConfigured()
+          ? '<div style="font-size:12px;color:var(--green);margin-top:6px;">✅ 실시간 시세 연동 활성화 (5분 자동)</div>'
+          : '<div style="font-size:12px;color:var(--text2);margin-top:6px;">⚠️ config.js에 Google Sheets URL을 설정하면 실시간 연동됩니다</div>'
+        }
+        ${PriceFetch.lastUpdate
+          ? '<div style="font-size:11px;color:var(--text3);margin-top:2px;">마지막 업데이트: ' + PriceFetch.lastUpdate.toLocaleTimeString('ko-KR') + '</div>'
+          : ''
+        }
       </div>
 
       <!-- 초기 데이터 로드 -->
@@ -405,7 +415,7 @@ const Admin = {
     }
   },
 
-  /* ── 실시간 주가 업데이트 (시뮬레이션) ── */
+  /* ── 실시간 주가 업데이트 ── */
   async updatePrices() {
     if (App.stocks.length === 0) {
       Utils.toast('종목이 없어요. 먼저 데이터를 로드해주세요.', 'error');
@@ -413,6 +423,26 @@ const Admin = {
     }
 
     Utils.showLoading(true);
+
+    // Google Sheets 연동이 설정된 경우 → 실시간 시세
+    if (PriceFetch.isConfigured()) {
+      try {
+        const count = await PriceFetch.fetchPrices();
+        if (count && count > 0) {
+          Utils.toast(count + '개 종목 실시간 시세 반영! 📡', 'success');
+          this.render();
+        } else {
+          Utils.toast('시세를 가져오지 못했어요. URL을 확인해주세요.', 'error');
+        }
+      } catch (e) {
+        Utils.toast('시세 연동 실패: ' + e.message, 'error');
+      } finally {
+        Utils.showLoading(false);
+      }
+      return;
+    }
+
+    // 미설정 → 시뮬레이션 (랜덤 변동)
     try {
       // 시뮬레이션: 각 종목에 -5% ~ +5% 랜덤 변동 적용
       const batch = App.db.batch();

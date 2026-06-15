@@ -107,6 +107,11 @@ const AppUI = {
     // 시장 상태 주기적 업데이트 (1분마다)
     this._marketTimer = setInterval(() => this.updateMarketStatus(), 60000);
 
+    // 실시간 시세 자동 연동 (5분마다)
+    if (PriceFetch.isConfigured()) {
+      PriceFetch.startAutoFetch(5);
+    }
+
     // 기본 탭 렌더
     this.switchTab('exchange');
   },
@@ -114,6 +119,7 @@ const AppUI = {
   /* ── 로그아웃 ── */
   logout() {
     if (this._marketTimer) clearInterval(this._marketTimer);
+    PriceFetch.stopAutoFetch();
     Auth.logout();
     document.getElementById('mainApp').style.display = 'none';
     document.getElementById('loginPage').classList.remove('hidden');
