@@ -115,6 +115,7 @@ const Admin = {
           <button class="admin-btn" style="flex:1;" onclick="Admin.showAddStock()">종목 추가</button>
           <button class="admin-btn red" style="flex:1;" onclick="Admin.showRemoveStock()">종목 삭제</button>
         </div>
+        <button class="admin-btn red" style="width:100%;margin-bottom:8px;background:#222;" onclick="Admin.deleteAllStocks()">🗑️ 종목 전체 삭제</button>
         <div id="adminStockForm"></div>
       </div>
 
@@ -377,6 +378,26 @@ const Admin = {
       this.showRemoveStock();
     } catch (e) {
       Utils.toast('삭제 실패', 'error');
+    }
+  },
+
+  /* 종목 전체 삭제 */
+  async deleteAllStocks() {
+    if (!confirm('⚠️ 모든 종목 데이터를 삭제할까요?\n삭제 후 "종목 데이터 로드"로 다시 채울 수 있어요.')) return;
+
+    Utils.showLoading(true);
+    try {
+      const snap = await App.db.collection(CONFIG.COLLECTIONS.STOCKS).get();
+      const batch = App.db.batch();
+      snap.forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+      App.stocks = [];
+      Utils.toast(snap.size + '개 종목 전체 삭제 완료', 'success');
+      this.render();
+    } catch (e) {
+      Utils.toast('전체 삭제 실패: ' + e.message, 'error');
+    } finally {
+      Utils.showLoading(false);
     }
   },
 
