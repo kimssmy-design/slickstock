@@ -1,0 +1,22 @@
+{
+  "name": "슬쩍 모의투자",
+  "short_name": "슬쩍",
+  "description": "실제 주식 데이터로 배우는 모의투자 시뮬레이터",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#F2F2F7",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

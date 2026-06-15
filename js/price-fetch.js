@@ -37,7 +37,7 @@ const PriceFetch = {
 
         // TSV 또는 CSV 파싱
         const cols = row.includes('\t') ? row.split('\t') : row.split(',');
-        const code = (cols[0] || '').trim().replace(/"/g, '');
+        const code = (cols[0] || '').trim().replace(/"/g, '').padStart(6, '0');
         const priceRaw = (cols[2] || '').trim().replace(/"/g, '');
         const prevCloseRaw = (cols[3] || '').trim().replace(/"/g, '');
 
