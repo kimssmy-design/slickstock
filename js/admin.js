@@ -180,6 +180,7 @@ const Admin = {
               <div class="admin-user-bal">잔고 ${Utils.formatWon(u.balance)}</div>
             </div>
             <div style="display:flex;gap:6px;">
+              <button class="admin-btn" style="background:var(--down);padding:6px 10px;font-size:12px;" onclick="Admin.resetPassword('${Utils.esc(u.id)}')">비번</button>
               <button class="admin-btn orange" onclick="Admin.giveCapital('${Utils.esc(u.id)}')">추가금</button>
               <button class="admin-btn red" onclick="Admin.resetUser('${Utils.esc(u.id)}')">초기화</button>
             </div>
@@ -225,6 +226,29 @@ const Admin = {
       if (App.user && App.user.id === userId) await Auth.refreshUser();
     } catch (e) {
       Utils.toast('초기화 실패', 'error');
+    } finally {
+      Utils.showLoading(false);
+    }
+  },
+
+  /* 비밀번호 재설정 */
+  async resetPassword(userId) {
+    const newPw = prompt(`${userId}의 새 비밀번호 (숫자 6자리):`, '');
+    if (!newPw) return;
+    if (!/^\d{6}$/.test(newPw)) {
+      Utils.toast('숫자 6자리로 입력해주세요', 'error');
+      return;
+    }
+
+    Utils.showLoading(true);
+    try {
+      const hash = await Utils.sha256(newPw);
+      await App.db.collection(CONFIG.COLLECTIONS.USERS).doc(userId).update({
+        passwordHash: hash
+      });
+      Utils.toast(`${userId} 비밀번호 변경 완료`, 'success');
+    } catch (e) {
+      Utils.toast('비밀번호 변경 실패', 'error');
     } finally {
       Utils.showLoading(false);
     }
