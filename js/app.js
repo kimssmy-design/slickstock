@@ -114,6 +114,19 @@ const AppUI = {
 
     // 기본 탭 렌더
     this.switchTab('account');
+
+    // 공지 팝업 (다신 보지 않기 체크)
+    if (!localStorage.getItem('sl_notice_dismissed')) {
+      document.getElementById('noticePopup').classList.add('show');
+    }
+  },
+
+  /* ── 공지 팝업 닫기 ── */
+  closeNotice(neverAgain) {
+    document.getElementById('noticePopup').classList.remove('show');
+    if (neverAgain) {
+      localStorage.setItem('sl_notice_dismissed', 'true');
+    }
   },
 
   /* ── 로그아웃 ── */

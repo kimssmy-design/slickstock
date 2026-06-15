@@ -99,6 +99,8 @@
         <button class="sort-tab active" data-sort="all">전체</button>
         <button class="sort-tab" data-sort="up">상승순 🔴</button>
         <button class="sort-tab" data-sort="down">하락순 🔵</button>
+        <button class="sort-tab" data-sort="price-low">저가순</button>
+        <button class="sort-tab" data-sort="price-high">고가순</button>
         <button class="sort-tab" data-sort="volume">거래량순</button>
         <button class="sort-tab" data-sort="fav">관심 ⭐</button>
       </div>
@@ -194,6 +196,27 @@
 
 <!-- 토스트 -->
 <div class="toast" id="toast"></div>
+
+<!-- 공지 팝업 -->
+<div class="notice-overlay" id="noticePopup">
+  <div class="notice-modal">
+    <div class="notice-confetti">🎉</div>
+    <div class="notice-title">슬쩍 모의투자<br><span>GRAND OPEN!</span></div>
+    <div class="notice-body">
+      <p>도덕샘이 만들어서 <b>버그가 많을 수 있어요.</b><br>버그 신고는 도덕샘한테~</p>
+      <p>초중고대 남녀노소 <b>누구나 이용 가능</b>하니<br>홍보 많이 해주세요! 📣</p>
+      <div class="notice-highlight">
+        🏆 매주 월요일 랭킹 1, 2, 3등은<br>
+        <b>자본금 100만원씩 추가!</b><br>
+        <span style="font-size:12px;color:var(--text2);">(랭킹은 수익률 기준이라 자본이 많다고 1위하는 게 아님!)</span>
+      </div>
+    </div>
+    <div class="notice-btns">
+      <button class="notice-btn sub" onclick="AppUI.closeNotice(true)">다신 보지 않기</button>
+      <button class="notice-btn main" onclick="AppUI.closeNotice(false)">닫기</button>
+    </div>
+  </div>
+</div>
 
 <!-- 로딩 -->
 <div class="loading-overlay" id="loading">

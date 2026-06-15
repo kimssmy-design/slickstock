@@ -84,9 +84,43 @@ const Detail = {
             <div class="stat-value" style="font-size:14px;">${Utils.esc(s.sector || '-')}</div>
           </div>
         </div>
-        <div style="background:var(--bg);border-radius:12px;padding:12px;margin-top:4px;">
-          <div style="font-size:12px;color:var(--text2);line-height:1.6;">
-            💡 <b>주가가 오르면?</b> 그 회사의 가치가 올라갔다는 뜻이야. 좋은 뉴스가 나오거나, 돈을 잘 벌거나, 미래가 기대되면 올라가!
+
+        <!-- 접이식 용어 설명 -->
+        <div style="margin-top:8px;">
+          <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'; this.querySelector('span').textContent=this.nextElementSibling.style.display==='none'?'▶':'▼';"
+               style="cursor:pointer;padding:10px 0 6px;font-size:13px;font-weight:700;color:var(--down);display:flex;align-items:center;gap:6px;">
+            📚 주식 용어 쉽게 알기 <span style="font-size:10px;">▶</span>
+          </div>
+          <div style="display:none;">
+            <div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:8px;">
+              <div style="font-size:14px;font-weight:800;margin-bottom:6px;">💰 PER <span style="font-weight:400;color:var(--text2);">(주가수익비율)</span></div>
+              <div style="font-size:13px;line-height:1.7;color:#444;">
+                <b>"이 회사 주식이 비싼 건지 싼 건지"</b> 알려주는 숫자야.<br><br>
+                예를 들어 PER이 10이면, 이 회사가 <b>1년에 버는 돈의 10배</b>를 주고 주식을 사는 거야.<br><br>
+                🔹 <b>PER이 낮으면</b> → 돈을 잘 버는데 주가가 저렴한 편 (가성비 👍)<br>
+                🔹 <b>PER이 높으면</b> → 지금은 비싸지만 미래에 대한 기대가 큰 것<br><br>
+                보통 한국 주식은 10~15배면 평균, 20 이상이면 "기대가 크다", 5 이하면 "저평가"라고 봐!
+              </div>
+            </div>
+            <div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:8px;">
+              <div style="font-size:14px;font-weight:800;margin-bottom:6px;">🏠 PBR <span style="font-weight:400;color:var(--text2);">(주가순자산비율)</span></div>
+              <div style="font-size:13px;line-height:1.7;color:#444;">
+                <b>"회사 재산에 비해 주식이 비싼지"</b> 알려주는 숫자야.<br><br>
+                회사가 가진 모든 것(건물, 현금, 기계 등)의 가치를 <b>1</b>이라고 하면:<br><br>
+                🔹 <b>PBR 1 미만</b> → 회사 재산보다 주가가 싸다! (세일 중? 🏷️)<br>
+                🔹 <b>PBR 1 이상</b> → 회사 재산보다 주가가 비싸다 (그만큼 미래가 기대됨)<br><br>
+                은행주는 보통 PBR 0.3~0.5 / IT 기업은 PBR 3~10도 나와!
+              </div>
+            </div>
+            <div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:8px;">
+              <div style="font-size:14px;font-weight:800;margin-bottom:6px;">📈 그 외 용어들</div>
+              <div style="font-size:13px;line-height:1.7;color:#444;">
+                <b>시가총액</b> = 주가 × 전체 주식 수. 회사의 "몸값"이야. 삼성전자가 400조면, 삼성을 통째로 사려면 400조가 필요하다는 뜻!<br><br>
+                <b>거래량</b> = 하루에 이 주식이 몇 번 사고팔렸는지. 거래량이 많으면 사람들이 관심 있다는 뜻!<br><br>
+                <b>EPS</b> = 주식 1주당 회사가 버는 돈. EPS가 높을수록 돈을 잘 버는 회사!<br><br>
+                <b>전일 종가</b> = 어제 장 마감할 때 가격. 오늘 가격과 비교해서 올랐는지 내렸는지 봐!
+              </div>
+            </div>
           </div>
         </div>
       </div>`;

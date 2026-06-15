@@ -103,9 +103,12 @@ const Admin = {
       </div>
 
       <!-- 회원 관리 -->
-      <div class="admin-card" id="adminUsers">
-        <div class="admin-card-title">👥 회원 관리</div>
-        <div style="text-align:center;padding:10px;color:var(--text2);">로딩 중...</div>
+      <div class="admin-card">
+        <div class="admin-card-title" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="Admin.toggleUsers()">
+          <span>👥 회원 관리</span>
+          <span id="userToggleIcon" style="font-size:12px;color:var(--text2);">▶ 펼치기</span>
+        </div>
+        <div id="adminUsers" style="display:none;"></div>
       </div>
 
       <!-- 종목 관리 -->
@@ -141,8 +144,8 @@ const Admin = {
       </div>
     `;
 
-    // 회원 목록 비동기 로드
-    this.loadUsers();
+    // 회원 목록은 접기 상태 — 토글 시 로드
+    this._usersOpen = false;
   },
 
   /* 설정 로드 */
@@ -160,10 +163,27 @@ const Admin = {
     }
   },
 
+  /* 회원 목록 토글 */
+  _usersOpen: false,
+  toggleUsers() {
+    this._usersOpen = !this._usersOpen;
+    const el = document.getElementById('adminUsers');
+    const icon = document.getElementById('userToggleIcon');
+    if (this._usersOpen) {
+      el.style.display = 'block';
+      icon.textContent = '▼ 접기';
+      this.loadUsers();
+    } else {
+      el.style.display = 'none';
+      icon.textContent = '▶ 펼치기';
+    }
+  },
+
   /* 회원 목록 로드 */
   async loadUsers() {
     const el = document.getElementById('adminUsers');
     if (!el) return;
+    el.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text2);">로딩 중...</div>';
 
     try {
       const snap = await App.db.collection(CONFIG.COLLECTIONS.USERS).get();
@@ -173,7 +193,7 @@ const Admin = {
       });
 
       el.innerHTML = `
-        <div class="admin-card-title">👥 회원 관리 (${users.length}명)</div>
+        <div style="font-size:13px;color:var(--text2);padding:8px 0;">${users.length}명 등록됨</div>
         ${users.map(u => `
           <div class="admin-user-row">
             <div>
@@ -188,7 +208,7 @@ const Admin = {
           </div>`).join('')}
       `;
     } catch (e) {
-      el.innerHTML = '<div class="admin-card-title">👥 회원 관리</div><div style="color:var(--text2);padding:10px;">로드 실패</div>';
+      el.innerHTML = '<div style="color:var(--text2);padding:10px;">로드 실패</div>';
     }
   },
 

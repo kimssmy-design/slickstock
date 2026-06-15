@@ -57,6 +57,12 @@ const Exchange = {
       case 'volume':
         stocks.sort((a, b) => (b.volume || 0) - (a.volume || 0));
         break;
+      case 'price-low':
+        stocks.sort((a, b) => (a.price || 0) - (b.price || 0));
+        break;
+      case 'price-high':
+        stocks.sort((a, b) => (b.price || 0) - (a.price || 0));
+        break;
       case 'fav':
         const favs = JSON.parse(localStorage.getItem('sl_favs') || '[]');
         stocks = stocks.filter(s => favs.includes(s.code));
