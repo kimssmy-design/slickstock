@@ -29,7 +29,7 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
-  background: #1C1C1E; color: var(--text);
+  background: #FFFFFF; color: var(--text);
   min-height: 100dvh; overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
@@ -43,7 +43,8 @@ body {
   background: var(--bg);
   position: relative;
 }
-.login-page { background: #fff; }
+#mainApp { min-height: 100dvh; }
+.login-page { background: #fff; min-height: 100dvh; }
 
 .up { color: var(--up); }
 .down { color: var(--down); }
@@ -56,13 +57,14 @@ body {
   display: flex; flex-direction: column;
   min-height: 100dvh; background: #fff;
   position: relative; overflow: hidden;
+  justify-content: center;
 }
 .login-page.hidden { display: none; }
 
 .login-hero {
-  flex: 1; display: flex; flex-direction: column;
-  justify-content: flex-end; padding: 0 32px 32px;
-  position: relative; min-height: 44vh;
+  display: flex; flex-direction: column;
+  justify-content: flex-end; padding: 0 32px 24px;
+  position: relative; min-height: 200px;
 }
 
 .login-bg-art {
@@ -312,13 +314,14 @@ body {
    ════════════════════════════════════════ */
 .detail-overlay {
   display: none; position: fixed;
-  top: 0; bottom: 0; left: 50%; transform: translateX(-50%);
+  top: 0; bottom: 0; left: 0; right: 0;
   z-index: 300; width: 100%; max-width: 430px;
+  margin: 0 auto;
   background: var(--bg); overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 .detail-overlay.show { display: block; animation: fadeIn 0.2s ease; }
-@keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
 
 .detail-header {
   position: sticky; top: 0; z-index: 10;
