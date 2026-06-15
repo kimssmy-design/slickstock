@@ -74,7 +74,7 @@
   <div class="header">
     <div class="header-row">
       <div>
-        <div class="header-title" id="headerTitle">거래소</div>
+        <div class="header-title" id="headerTitle">내 계좌</div>
         <div style="margin-top:2px;">
           <span class="market-status">
             <span class="market-dot closed" id="marketDot"></span>
@@ -93,7 +93,7 @@
   </div>
 
   <!-- ── 거래소 탭 ── -->
-  <div id="page-exchange" class="page active">
+  <div id="page-exchange" class="page">
     <div class="page-inner">
       <div class="sort-tabs">
         <button class="sort-tab active" data-sort="all">전체</button>
@@ -107,7 +107,7 @@
   </div>
 
   <!-- ── 내 계좌 탭 ── -->
-  <div id="page-account" class="page">
+  <div id="page-account" class="page active">
     <div class="page-inner" id="accountContent"></div>
   </div>
 
@@ -123,11 +123,11 @@
 
   <!-- 탭바 -->
   <div class="tab-bar">
-    <div class="tab-item active" data-tab="exchange"
+    <div class="tab-item" data-tab="exchange"
          onclick="AppUI.switchTab('exchange', this)">
       <span class="tab-icon">📊</span><span class="tab-label">거래소</span>
     </div>
-    <div class="tab-item" data-tab="account"
+    <div class="tab-item active" data-tab="account"
          onclick="AppUI.switchTab('account', this)">
       <span class="tab-icon">💰</span><span class="tab-label">내 계좌</span>
     </div>

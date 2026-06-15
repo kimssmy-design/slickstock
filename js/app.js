@@ -113,7 +113,7 @@ const AppUI = {
     }
 
     // 기본 탭 렌더
-    this.switchTab('exchange');
+    this.switchTab('account');
   },
 
   /* ── 로그아웃 ── */
