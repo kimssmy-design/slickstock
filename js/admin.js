@@ -125,8 +125,8 @@ const Admin = {
       <!-- 초기 자본 설정 -->
       <div class="admin-card">
         <div class="admin-card-title">💰 초기 자본 설정</div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:14px;color:var(--text2);">신규 가입 시</span>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:6px;">신규 가입 시 지급되는 금액</div>
+        <div style="display:flex;gap:8px;">
           <input type="number" id="initialCapitalInput" value="${App.config.initialCapital}"
             style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);font-size:16px;font-weight:700;font-family:inherit;">
           <button class="admin-btn orange" onclick="Admin.saveInitialCapital()">저장</button>
@@ -136,7 +136,7 @@ const Admin = {
       <!-- 관리자 PIN 변경 -->
       <div class="admin-card">
         <div class="admin-card-title">🔒 관리자 PIN 변경</div>
-        <div style="display:flex;align-items:center;gap:10px;">
+        <div style="display:flex;gap:8px;">
           <input type="password" id="newPinInput" maxlength="6" inputmode="numeric" placeholder="새 PIN 6자리"
             style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);font-size:16px;font-family:inherit;">
           <button class="admin-btn orange" onclick="Admin.savePin()">변경</button>
@@ -194,18 +194,23 @@ const Admin = {
 
       el.innerHTML = `
         <div style="font-size:13px;color:var(--text2);padding:8px 0;">${users.length}명 등록됨</div>
-        ${users.map(u => `
-          <div class="admin-user-row">
-            <div>
-              <div class="admin-user-name">${Utils.esc(u.name || u.id)}</div>
-              <div class="admin-user-bal">잔고 ${Utils.formatWon(u.balance)}</div>
+        ${users.map(u => {
+          // NEW 배지: 24시간 이내 가입
+          const isNew = u.createdAt && (Date.now() - (u.createdAt.toDate ? u.createdAt.toDate() : new Date(u.createdAt)).getTime()) < 24 * 60 * 60 * 1000;
+          return `
+          <div class="admin-user-row" style="flex-wrap:wrap;">
+            <div style="cursor:pointer;flex:1;min-width:0;" onclick="Admin.showUserDetail('${Utils.esc(u.id)}')">
+              <div class="admin-user-name">${Utils.esc(u.name || u.id)} ${isNew ? '<span style="background:#FF3B30;color:#fff;font-size:10px;padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:700;">NEW</span>' : ''}</div>
+              <div class="admin-user-bal">잔고 ${Utils.formatWon(u.balance)} <span style="font-size:11px;color:var(--text3);">▼ 터치해서 상세보기</span></div>
             </div>
-            <div style="display:flex;gap:6px;">
-              <button class="admin-btn" style="background:var(--down);padding:6px 10px;font-size:12px;" onclick="Admin.resetPassword('${Utils.esc(u.id)}')">비번</button>
-              <button class="admin-btn orange" onclick="Admin.giveCapital('${Utils.esc(u.id)}')">추가금</button>
-              <button class="admin-btn red" onclick="Admin.resetUser('${Utils.esc(u.id)}')">초기화</button>
+            <div style="display:flex;gap:4px;">
+              <button class="admin-btn" style="background:var(--down);padding:4px 8px;font-size:11px;" onclick="event.stopPropagation();Admin.resetPassword('${Utils.esc(u.id)}')">비번</button>
+              <button class="admin-btn orange" style="padding:4px 8px;font-size:11px;" onclick="event.stopPropagation();Admin.giveCapital('${Utils.esc(u.id)}')">추가금</button>
+              <button class="admin-btn red" style="padding:4px 8px;font-size:11px;" onclick="event.stopPropagation();Admin.resetUser('${Utils.esc(u.id)}')">초기화</button>
             </div>
-          </div>`).join('')}
+            <div id="userDetail_${u.id.replace(/[^a-zA-Z0-9가-힣]/g,'_')}" style="display:none;width:100%;"></div>
+          </div>`;
+        }).join('')}
       `;
     } catch (e) {
       el.innerHTML = '<div style="color:var(--text2);padding:10px;">로드 실패</div>';
@@ -249,6 +254,77 @@ const Admin = {
       Utils.toast('초기화 실패', 'error');
     } finally {
       Utils.showLoading(false);
+    }
+  },
+
+  /* 학생 계좌 상세보기 */
+  async showUserDetail(userId) {
+    const safeId = userId.replace(/[^a-zA-Z0-9가-힣]/g, '_');
+    const el = document.getElementById('userDetail_' + safeId);
+    if (!el) return;
+
+    // 토글
+    if (el.style.display === 'block') {
+      el.style.display = 'none';
+      return;
+    }
+
+    el.style.display = 'block';
+    el.innerHTML = '<div style="padding:8px;color:var(--text2);font-size:12px;">로딩 중...</div>';
+
+    try {
+      const doc = await App.db.collection(CONFIG.COLLECTIONS.USERS).doc(userId).get();
+      if (!doc.exists) { el.innerHTML = '<div style="padding:8px;color:var(--text2);">데이터 없음</div>'; return; }
+
+      const u = doc.data();
+      const holdings = u.holdings || {};
+      let investTotal = 0;
+      const holdingsList = [];
+
+      for (const [code, h] of Object.entries(holdings)) {
+        const stock = App.stocks.find(s => s.code === code);
+        if (!stock || h.qty <= 0) continue;
+        const val = h.qty * stock.price;
+        const cost = h.qty * h.avgPrice;
+        investTotal += val;
+        holdingsList.push({ name: stock.name, qty: h.qty, pnl: val - cost, pnlPct: cost > 0 ? ((val - cost) / cost * 100) : 0 });
+      }
+
+      const totalAsset = (u.balance || 0) + investTotal;
+      const totalPnl = totalAsset - (u.initialCapital || CONFIG.DEFAULT_CAPITAL);
+      const totalPnlPct = (u.initialCapital || CONFIG.DEFAULT_CAPITAL) > 0
+        ? (totalPnl / (u.initialCapital || CONFIG.DEFAULT_CAPITAL) * 100) : 0;
+
+      holdingsList.sort((a, b) => b.pnlPct - a.pnlPct);
+
+      el.innerHTML = `
+        <div style="background:var(--bg);border-radius:10px;padding:12px;margin-top:8px;font-size:12px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="color:var(--text2);">총 자산</span>
+            <b>${Utils.formatWon(totalAsset)}</b>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="color:var(--text2);">보유 현금</span>
+            <span>${Utils.formatWon(u.balance)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="color:var(--text2);">투자 평가액</span>
+            <span>${Utils.formatWon(investTotal)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <span style="color:var(--text2);">총 수익률</span>
+            <b class="${Utils.dir(totalPnl)}">${Utils.formatPct(totalPnlPct)}</b>
+          </div>
+          ${holdingsList.length > 0 ? '<div style="border-top:1px solid var(--border);padding-top:6px;font-size:11px;color:var(--text2);">보유 종목</div>' : ''}
+          ${holdingsList.map(h => `
+            <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;">
+              <span>${Utils.esc(h.name)} ${h.qty}주</span>
+              <span class="${Utils.dir(h.pnl)}">${Utils.formatPct(h.pnlPct)}</span>
+            </div>`).join('')}
+          ${holdingsList.length === 0 ? '<div style="color:var(--text3);font-size:11px;padding-top:4px;">보유 종목 없음</div>' : ''}
+        </div>`;
+    } catch (e) {
+      el.innerHTML = '<div style="padding:8px;color:var(--up);font-size:12px;">조회 실패</div>';
     }
   },
 
