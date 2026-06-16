@@ -10,12 +10,6 @@ const Exchange = {
 
   /* ── 전체 종목 로드 (84 reads, 로그인 시 1회) ── */
   async loadFull() {
-    // 수면 시간엔 종목 데이터 로드 안 함
-    const schedule = Utils.getRefreshSchedule();
-    if (schedule.mode === 'sleep') {
-      this.render();
-      return;
-    }
     try {
       const snap = await App.db.collection(CONFIG.COLLECTIONS.STOCKS).get();
       App.stocks = [];
