@@ -100,16 +100,20 @@ const PriceFetch = {
     const min = intervalMin || 5;
     this.stopAutoFetch();
 
-    // 첫 실행
-    this.fetchPrices().then(result => {
-      if (result !== false && result > 0) {
-        Utils.toast('실시간 시세 연동 중 📡', 'success');
-      }
-    });
+    // 수면 시간이면 첫 실행 스킵
+    const schedule = Utils.getRefreshSchedule();
+    if (schedule.mode !== 'sleep') {
+      this.fetchPrices().then(result => {
+        if (result !== false && result > 0) {
+          Utils.toast('실시간 시세 연동 중 📡', 'success');
+        }
+      });
+    }
 
-    // 주기적 실행 (장 운영시간만)
+    // 주기적 실행 (수면 시간 제외)
     this._timer = setInterval(() => {
-      if (Utils.isMarketHours()) {
+      const s = Utils.getRefreshSchedule();
+      if (s.mode !== 'sleep') {
         this.fetchPrices();
       }
     }, min * 60 * 1000);

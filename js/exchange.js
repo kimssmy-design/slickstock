@@ -10,6 +10,12 @@ const Exchange = {
 
   /* ── 전체 종목 로드 (84 reads, 로그인 시 1회) ── */
   async loadFull() {
+    // 수면 시간엔 종목 데이터 로드 안 함
+    const schedule = Utils.getRefreshSchedule();
+    if (schedule.mode === 'sleep') {
+      this.render();
+      return;
+    }
     try {
       const snap = await App.db.collection(CONFIG.COLLECTIONS.STOCKS).get();
       App.stocks = [];
@@ -60,13 +66,13 @@ const Exchange = {
     const schedule = Utils.getRefreshSchedule();
 
     if (schedule.mode === 'sleep') {
-      // 수면 모드: 30분마다 스케줄 재확인만
-      AppUI.showSleepMode(true);
+      // 수면 모드: 30분마다 스케줄 재확인만 (시세 갱신 안 함)
+      this.render(); // 수면 화면 표시
       this._timer = setTimeout(() => this._scheduleNext(), 30 * 60000);
       return;
     }
 
-    AppUI.showSleepMode(false);
+    this.render(); // 깨어나면 종목 리스트 복원
     const ms = schedule.interval * 60000;
 
     this._timer = setTimeout(async () => {
@@ -83,6 +89,17 @@ const Exchange = {
   render() {
     const el = document.getElementById('exchangeContent');
     if (!el) return;
+
+    // 수면 시간이면 종목 리스트 + 정렬 탭 숨기기
+    const schedule = Utils.getRefreshSchedule();
+    const sortTabs = document.querySelector('#page-exchange .sort-tabs');
+
+    if (schedule.mode === 'sleep') {
+      if (sortTabs) sortTabs.style.display = 'none';
+      el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text2);font-size:15px;line-height:2;">💤<br><b style="font-size:20px;color:var(--text);">거래소 휴식중</b><br>오전 7시에 다시 열려요!<br><span style="font-size:13px;">22:00~07:00은 시세 반영이 멈춰요</span></div>';
+      return;
+    }
+    if (sortTabs) sortTabs.style.display = 'flex';
 
     const stocks = this.getSortedStocks();
     if (stocks.length === 0) {

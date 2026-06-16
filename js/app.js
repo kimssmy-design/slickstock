@@ -204,23 +204,6 @@ const AppUI = {
         label.textContent = '장 마감';
       }
     }
-  },
-
-  /* ── 수면 모드 UI ── */
-  showSleepMode(isSleep) {
-    let el = document.getElementById('sleepBanner');
-    if (isSleep) {
-      if (!el) {
-        el = document.createElement('div');
-        el.id = 'sleepBanner';
-        el.style.cssText = 'text-align:center;padding:32px 20px;color:var(--text2);font-size:14px;line-height:1.8;';
-        el.innerHTML = '💤<br><b style="font-size:18px;">거래소 휴식중</b><br>오전 7시에 다시 열려요!';
-        const page = document.getElementById('page-exchange');
-        if (page) page.querySelector('.page-inner').prepend(el);
-      }
-    } else {
-      if (el) el.remove();
-    }
   }
 };
 
