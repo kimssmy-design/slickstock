@@ -511,6 +511,7 @@ const Admin = {
     try {
       // 시뮬레이션: 각 종목에 -5% ~ +5% 랜덤 변동 적용
       const batch = App.db.batch();
+      const priceMap = {};
 
       for (const stock of App.stocks) {
         const volatility = (Math.random() - 0.48) * 0.06; // 살짝 상승 편향
@@ -528,7 +529,17 @@ const Admin = {
           volume: Math.floor(Math.random() * 5000000) + 100000,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
+
+        priceMap[stock.code] = {
+          price: newPrice, prevClose, change,
+          changePct: Math.round(changePct * 100) / 100,
+          volume: Math.floor(Math.random() * 5000000) + 100000
+        };
       }
+
+      // 캐시 문서도 업데이트
+      const cacheRef = App.db.collection(CONFIG.COLLECTIONS.CONFIG).doc('priceCache');
+      batch.set(cacheRef, { prices: priceMap, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
 
       await batch.commit();
       Utils.toast('주가 업데이트 완료! 📡', 'success');

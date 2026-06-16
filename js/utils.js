@@ -93,5 +93,29 @@ const Utils = {
   debounce(fn, delay = 300) {
     let t;
     return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); };
+  },
+
+  /* 시간대별 새로고침 스케줄 (KST 기준) */
+  getRefreshSchedule() {
+    const now = new Date();
+    const kst = new Date(now.getTime() + (9 * 60 + now.getTimezoneOffset()) * 60000);
+    const h = kst.getHours();
+    const m = kst.getMinutes();
+    const time = h * 60 + m;
+
+    // 22:00~07:00 → 수면 모드
+    if (time >= 22 * 60 || time < 7 * 60)
+      return { interval: 0, mode: 'sleep' };
+    // 07:00~09:00 → 5분
+    if (time < 9 * 60)
+      return { interval: 5, mode: 'pre' };
+    // 09:00~15:00 → 1시간
+    if (time < 15 * 60)
+      return { interval: 60, mode: 'market' };
+    // 15:00~16:40 → 5분
+    if (time < 16 * 60 + 40)
+      return { interval: 5, mode: 'closing' };
+    // 16:40~22:00 → 1시간
+    return { interval: 60, mode: 'evening' };
   }
 };

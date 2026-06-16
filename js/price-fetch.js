@@ -30,6 +30,7 @@ const PriceFetch = {
       const batch = App.db.batch();
       let updated = 0;
       let errors = 0;
+      const priceMap = {};  // 캐시용 가격 맵
 
       for (let i = 1; i < rows.length; i++) {
         const row = rows[i].trim();
@@ -65,10 +66,20 @@ const PriceFetch = {
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
 
+        // 캐시용 수집
+        priceMap[code] = { price, prevClose, change, changePct, volume: 0 };
+
         updated++;
       }
 
       if (updated > 0) {
+        // 가격 캐시 문서도 함께 업데이트 (읽기 최적화)
+        const cacheRef = App.db.collection(CONFIG.COLLECTIONS.CONFIG).doc('priceCache');
+        batch.set(cacheRef, {
+          prices: priceMap,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
         await batch.commit();
         this.lastUpdate = new Date();
         // 차트 캐시 초기화 (새 가격 반영)

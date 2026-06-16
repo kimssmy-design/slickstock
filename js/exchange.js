@@ -1,12 +1,85 @@
 /* ============================================================
- *  exchange.js — 거래소 탭 (종목 리스트 + 정렬)
+ *  exchange.js — 거래소 탭 (종목 리스트 + 정렬 + 스마트 스케줄)
+ *  읽기 최적화: 전체 로드 1회 + 캐시 갱신 (1 read/refresh)
  * ============================================================ */
 
 const Exchange = {
   currentSort: 'all',
   searchQuery: '',
+  _timer: null,
 
-  /* 거래소 탭 렌더링 */
+  /* ── 전체 종목 로드 (84 reads, 로그인 시 1회) ── */
+  async loadFull() {
+    try {
+      const snap = await App.db.collection(CONFIG.COLLECTIONS.STOCKS).get();
+      App.stocks = [];
+      snap.forEach(doc => App.stocks.push({ id: doc.id, ...doc.data() }));
+      this.render();
+      AppUI.updateHeader();
+    } catch (e) {
+      console.error('종목 로드 오류:', e);
+    }
+  },
+
+  /* ── 캐시에서 가격만 갱신 (1 read) ── */
+  async refreshFromCache() {
+    try {
+      const doc = await App.db.collection(CONFIG.COLLECTIONS.CONFIG).doc('priceCache').get();
+      if (!doc.exists) return;
+      const prices = doc.data().prices || {};
+
+      App.stocks.forEach(s => {
+        const p = prices[s.code];
+        if (p) {
+          s.price = p.price;
+          s.prevClose = p.prevClose;
+          s.change = p.change;
+          s.changePct = p.changePct;
+          if (p.volume) s.volume = p.volume;
+        }
+      });
+
+      this.render();
+      AppUI.updateHeader();
+      // 차트 캐시 초기화
+      if (typeof Chart !== 'undefined') Chart.cache = {};
+    } catch (e) {
+      console.error('캐시 갱신 오류:', e);
+    }
+  },
+
+  /* ── 스마트 스케줄 시작 ── */
+  startSmartRefresh() {
+    this.loadFull();
+    this._scheduleNext();
+  },
+
+  _scheduleNext() {
+    if (this._timer) clearTimeout(this._timer);
+
+    const schedule = Utils.getRefreshSchedule();
+
+    if (schedule.mode === 'sleep') {
+      // 수면 모드: 30분마다 스케줄 재확인만
+      AppUI.showSleepMode(true);
+      this._timer = setTimeout(() => this._scheduleNext(), 30 * 60000);
+      return;
+    }
+
+    AppUI.showSleepMode(false);
+    const ms = schedule.interval * 60000;
+
+    this._timer = setTimeout(async () => {
+      await this.refreshFromCache();
+      this._scheduleNext();
+    }, ms);
+  },
+
+  stopRefresh() {
+    if (this._timer) clearTimeout(this._timer);
+  },
+
+  /* ── 거래소 탭 렌더링 ── */
   render() {
     const el = document.getElementById('exchangeContent');
     if (!el) return;
@@ -37,7 +110,6 @@ const Exchange = {
   getSortedStocks() {
     let stocks = [...App.stocks];
 
-    // 검색 필터
     if (this.searchQuery) {
       const q = this.searchQuery.toLowerCase();
       stocks = stocks.filter(s =>
@@ -67,7 +139,7 @@ const Exchange = {
         const favs = JSON.parse(localStorage.getItem('sl_favs') || '[]');
         stocks = stocks.filter(s => favs.includes(s.code));
         break;
-      default: // 'all' — 이름순
+      default:
         stocks.sort((a, b) => a.name.localeCompare(b.name, 'ko'));
     }
     return stocks;
@@ -79,22 +151,5 @@ const Exchange = {
     document.querySelectorAll('.sort-tab').forEach(t => t.classList.remove('active'));
     if (el) el.classList.add('active');
     this.render();
-  },
-
-  /* Firestore 실시간 리스너 */
-  listen() {
-    const unsub = App.db.collection(CONFIG.COLLECTIONS.STOCKS)
-      .onSnapshot(snap => {
-        App.stocks = [];
-        snap.forEach(doc => {
-          App.stocks.push({ id: doc.id, ...doc.data() });
-        });
-        this.render();
-        // 헤더 잔고 업데이트
-        AppUI.updateHeader();
-      }, err => {
-        console.error('종목 리스너 오류:', err);
-      });
-    App.unsubscribers.push(unsub);
   }
 };

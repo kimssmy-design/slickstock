@@ -86,37 +86,29 @@ const AppUI = {
     this.updateHeader();
     this.updateMarketStatus();
 
-    // Firestore 리스너 시작
-    Exchange.listen();
+    // 종목 스마트 스케줄 시작 (시간대별 자동 조절)
+    Exchange.startSmartRefresh();
 
-    // 사용자 데이터 실시간 리스너
-    const userUnsub = App.db.collection(CONFIG.COLLECTIONS.USERS)
-      .doc(App.user.id)
-      .onSnapshot(doc => {
-        if (doc.exists) {
-          const d = doc.data();
-          App.user.balance = d.balance || 0;
-          App.user.holdings = d.holdings || {};
-          App.user.initialCapital = d.initialCapital || CONFIG.DEFAULT_CAPITAL;
-          this.updateHeader();
-          if (this.currentTab === 'account') Account.render();
-        }
-      });
-    App.unsubscribers.push(userUnsub);
+    // 사용자 데이터 주기적 새로고침 (60초마다)
+    this._userTimer = setInterval(async () => {
+      await Auth.refreshUser();
+      this.updateHeader();
+      if (this.currentTab === 'account') Account.render();
+    }, 60000);
 
     // 시장 상태 주기적 업데이트 (1분마다)
     this._marketTimer = setInterval(() => this.updateMarketStatus(), 60000);
 
-    // 실시간 시세 자동 연동 (5분마다)
+    // 실시간 시세 자동 연동 (15분마다 — 장 시간에만)
     if (PriceFetch.isConfigured()) {
-      PriceFetch.startAutoFetch(5);
+      PriceFetch.startAutoFetch(15);
     }
 
     // 기본 탭 렌더
     this.switchTab('account');
 
     // 공지 팝업 (다신 보지 않기 체크)
-    if (!localStorage.getItem('sl_notice_dismissed')) {
+    if (!localStorage.getItem('sl_notice_v2')) {
       document.getElementById('noticePopup').classList.add('show');
     }
   },
@@ -125,13 +117,15 @@ const AppUI = {
   closeNotice(neverAgain) {
     document.getElementById('noticePopup').classList.remove('show');
     if (neverAgain) {
-      localStorage.setItem('sl_notice_dismissed', 'true');
+      localStorage.setItem('sl_notice_v2', 'true');
     }
   },
 
   /* ── 로그아웃 ── */
   logout() {
     if (this._marketTimer) clearInterval(this._marketTimer);
+    if (this._userTimer) clearInterval(this._userTimer);
+    Exchange.stopRefresh();
     PriceFetch.stopAutoFetch();
     Auth.logout();
     document.getElementById('mainApp').style.display = 'none';
@@ -194,16 +188,37 @@ const AppUI = {
   /* ── 시장 상태 표시 업데이트 ── */
   updateMarketStatus() {
     App.marketOpen = Utils.isMarketHours();
+    const schedule = Utils.getRefreshSchedule();
     const dot = document.getElementById('marketDot');
     const label = document.getElementById('marketLabel');
     if (dot && label) {
-      if (App.marketOpen) {
+      if (schedule.mode === 'sleep') {
+        dot.className = 'market-dot closed';
+        label.textContent = '💤 거래소 휴식중';
+      } else if (App.marketOpen) {
         dot.className = 'market-dot open';
         label.textContent = '장 운영중 · 16:30 마감';
       } else {
         dot.className = 'market-dot closed';
         label.textContent = '장 마감';
       }
+    }
+  },
+
+  /* ── 수면 모드 UI ── */
+  showSleepMode(isSleep) {
+    let el = document.getElementById('sleepBanner');
+    if (isSleep) {
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'sleepBanner';
+        el.style.cssText = 'text-align:center;padding:32px 20px;color:var(--text2);font-size:14px;line-height:1.8;';
+        el.innerHTML = '💤<br><b style="font-size:18px;">거래소 휴식중</b><br>오전 7시에 다시 열려요!';
+        const page = document.getElementById('page-exchange');
+        if (page) page.querySelector('.page-inner').prepend(el);
+      }
+    } else {
+      if (el) el.remove();
     }
   }
 };

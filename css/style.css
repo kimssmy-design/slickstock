@@ -193,7 +193,7 @@ body {
 /* ── 정렬탭 ── */
 .sort-tabs {
   display: flex; gap: 6px; padding: 8px 0 12px;
-  overflow-x: auto;
+  overflow-x: auto; flex-wrap: wrap;
 }
 .sort-tabs::-webkit-scrollbar { display: none; }
 .sort-tab {
