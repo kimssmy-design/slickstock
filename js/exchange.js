@@ -90,7 +90,7 @@ const Exchange = {
 
     if (schedule.mode === 'sleep') {
       if (sortTabs) sortTabs.style.display = 'none';
-      el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text2);font-size:15px;line-height:2;">💤<br><b style="font-size:20px;color:var(--text);">거래소 휴식중</b><br>오전 7시에 다시 열려요!<br><span style="font-size:13px;">22:00~07:00은 시세 반영이 멈춰요</span></div>';
+      el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text2);font-size:15px;line-height:2;">💤<br><b style="font-size:20px;color:var(--text);">거래소 휴식중</b><br>오전 8시에 다시 열려요!<br><span style="font-size:13px;">22:00~08:00은 시세 반영이 멈춰요</span></div>';
       return;
     }
     if (sortTabs) sortTabs.style.display = 'flex';

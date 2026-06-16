@@ -103,10 +103,10 @@ const Utils = {
     const m = kst.getMinutes();
     const time = h * 60 + m;
 
-    // 22:00~07:00 → 수면 모드
-    if (time >= 22 * 60 || time < 7 * 60)
+    // 22:00~08:00 → 수면 모드
+    if (time >= 22 * 60 || time < 8 * 60)
       return { interval: 0, mode: 'sleep' };
-    // 07:00~09:00 → 5분
+    // 08:00~09:00 → 5분
     if (time < 9 * 60)
       return { interval: 5, mode: 'pre' };
     // 09:00~15:00 → 1시간
