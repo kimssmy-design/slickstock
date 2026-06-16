@@ -78,7 +78,7 @@ const AppUI = {
   },
 
   /* ── 앱 진입 ── */
-  enterApp() {
+  async enterApp() {
     document.getElementById('loginPage').classList.add('hidden');
     document.getElementById('mainApp').style.display = 'block';
 
@@ -86,8 +86,9 @@ const AppUI = {
     this.updateHeader();
     this.updateMarketStatus();
 
-    // 종목 스마트 스케줄 시작 (시간대별 자동 조절)
-    Exchange.startSmartRefresh();
+    // 종목 데이터 먼저 로드 (완료 대기 → 내 계좌 평가액 정상 표시)
+    await Exchange.loadFull();
+    Exchange._scheduleNext();
 
     // 사용자 데이터 주기적 새로고침 (60초마다)
     this._userTimer = setInterval(async () => {
