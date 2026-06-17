@@ -125,11 +125,6 @@
     <div class="page-inner" id="rankingContent"></div>
   </div>
 
-  <!-- ── 관리자 탭 ── -->
-  <div id="page-admin" class="page">
-    <div class="page-inner" id="adminContent"></div>
-  </div>
-
   <!-- 탭바 -->
   <div class="tab-bar">
     <div class="tab-item active" data-tab="account"
@@ -143,10 +138,6 @@
     <div class="tab-item" data-tab="ranking"
          onclick="AppUI.switchTab('ranking', this)">
       <span class="tab-icon">🏆</span><span class="tab-label">랭킹</span>
-    </div>
-    <div class="tab-item" data-tab="admin"
-         onclick="AppUI.handleAdminTab(this)">
-      <span class="tab-icon">⚙️</span><span class="tab-label">관리자</span>
     </div>
   </div>
 </div>
@@ -171,34 +162,6 @@
      ╚══════════════════════════════════════════════════════════╝ -->
 <div class="modal-overlay" id="tradeModal">
   <div class="modal-sheet" id="tradeModalBody"></div>
-</div>
-
-<!-- ╔══════════════════════════════════════════════════════════╗
-     ║  관리자 PIN 모달                                         ║
-     ╚══════════════════════════════════════════════════════════╝ -->
-<div class="pin-overlay" id="pinOverlay">
-  <div class="pin-modal">
-    <div class="pin-title">🔒 관리자 인증</div>
-    <div class="pin-desc">6자리 비밀번호를 입력하세요</div>
-    <div class="pin-dots" id="pinDots">
-      <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
-      <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
-    </div>
-    <div class="pin-keypad">
-      <button class="pin-key" onclick="Admin.pinInput(1)">1</button>
-      <button class="pin-key" onclick="Admin.pinInput(2)">2</button>
-      <button class="pin-key" onclick="Admin.pinInput(3)">3</button>
-      <button class="pin-key" onclick="Admin.pinInput(4)">4</button>
-      <button class="pin-key" onclick="Admin.pinInput(5)">5</button>
-      <button class="pin-key" onclick="Admin.pinInput(6)">6</button>
-      <button class="pin-key" onclick="Admin.pinInput(7)">7</button>
-      <button class="pin-key" onclick="Admin.pinInput(8)">8</button>
-      <button class="pin-key" onclick="Admin.pinInput(9)">9</button>
-      <button class="pin-key fn" onclick="Admin.closePin()">취소</button>
-      <button class="pin-key" onclick="Admin.pinInput(0)">0</button>
-      <button class="pin-key fn" onclick="Admin.pinDelete()">⌫</button>
-    </div>
-  </div>
 </div>
 
 <!-- 토스트 -->
@@ -252,7 +215,6 @@
 <script src="js/trade.js"></script>
 <script src="js/account.js"></script>
 <script src="js/ranking.js"></script>
-<script src="js/admin.js"></script>
 <script src="js/chart.js"></script>
 <script src="js/price-fetch.js"></script>
 <script src="js/app.js"></script>
