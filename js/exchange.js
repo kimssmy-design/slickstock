@@ -87,13 +87,16 @@ const Exchange = {
     // 수면 시간이면 종목 리스트 + 정렬 탭 숨기기
     const schedule = Utils.getRefreshSchedule();
     const sortTabs = document.querySelector('#page-exchange .sort-tabs');
+    const searchBar = document.getElementById('stockSearch');
 
     if (schedule.mode === 'sleep') {
       if (sortTabs) sortTabs.style.display = 'none';
+      if (searchBar) searchBar.style.display = 'none';
       el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text2);font-size:15px;line-height:2;">💤<br><b style="font-size:20px;color:var(--text);">거래소 휴식중</b><br>오전 8시에 다시 열려요!<br><span style="font-size:13px;">22:00~08:00은 시세 반영이 멈춰요</span></div>';
       return;
     }
     if (sortTabs) sortTabs.style.display = 'flex';
+    if (searchBar) searchBar.style.display = 'block';
 
     const stocks = this.getSortedStocks();
     if (stocks.length === 0) {
