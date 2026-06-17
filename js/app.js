@@ -156,7 +156,7 @@ const AppUI = {
     }
 
     // 헤더 타이틀
-    const titles = { exchange: '거래소', account: '내 계좌', ranking: '랭킹', admin: '관리자' };
+    const titles = { exchange: '거래소', account: '내 계좌', ranking: '랭킹' };
     document.getElementById('headerTitle').textContent = titles[tab];
 
     // 탭별 렌더링
@@ -164,16 +164,6 @@ const AppUI = {
       case 'exchange': Exchange.render(); break;
       case 'account': Account.render(); break;
       case 'ranking': Ranking.render(); break;
-      case 'admin': Admin.render(); break;
-    }
-  },
-
-  /* ── 관리자 탭 (PIN 체크) ── */
-  handleAdminTab(el) {
-    if (App.adminUnlocked) {
-      this.switchTab('admin', el);
-    } else {
-      Admin.openPin(() => this.switchTab('admin', el));
     }
   },
 

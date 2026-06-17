@@ -376,7 +376,7 @@ const Admin = {
         { merge: true }
       );
       App.config.marketOverride = override;
-      AppUI.updateMarketStatus();
+      if (typeof AppUI !== 'undefined') AppUI.updateMarketStatus();
       this.render();
       Utils.toast(
         override === true ? '장이 열렸어요!' :
