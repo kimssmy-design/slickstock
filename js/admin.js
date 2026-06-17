@@ -207,6 +207,7 @@ const Admin = {
               <button class="admin-btn" style="background:var(--down);padding:4px 8px;font-size:11px;" onclick="event.stopPropagation();Admin.resetPassword('${Utils.esc(u.id)}')">비번</button>
               <button class="admin-btn orange" style="padding:4px 8px;font-size:11px;" onclick="event.stopPropagation();Admin.giveCapital('${Utils.esc(u.id)}')">추가금</button>
               <button class="admin-btn red" style="padding:4px 8px;font-size:11px;" onclick="event.stopPropagation();Admin.resetUser('${Utils.esc(u.id)}')">초기화</button>
+              <button class="admin-btn" style="background:#333;padding:4px 6px;font-size:10px;" onclick="event.stopPropagation();Admin.kickUser('${Utils.esc(u.id)}')">out</button>
             </div>
             <div id="userDetail_${u.id.replace(/[^a-zA-Z0-9가-힣]/g,'_')}" style="display:none;width:100%;"></div>
           </div>`;
@@ -325,6 +326,22 @@ const Admin = {
         </div>`;
     } catch (e) {
       el.innerHTML = '<div style="padding:8px;color:var(--up);font-size:12px;">조회 실패</div>';
+    }
+  },
+
+  /* 회원 탈퇴 (삭제) */
+  async kickUser(userId) {
+    if (!confirm(`⚠️ "${userId}" 회원을 탈퇴시킬까요?\n모든 데이터(잔고, 보유종목, 거래내역)가 삭제됩니다.`)) return;
+
+    Utils.showLoading(true);
+    try {
+      await App.db.collection(CONFIG.COLLECTIONS.USERS).doc(userId).delete();
+      Utils.toast(`${userId} 탈퇴 완료`, 'success');
+      this.loadUsers();
+    } catch (e) {
+      Utils.toast('탈퇴 실패: ' + e.message, 'error');
+    } finally {
+      Utils.showLoading(false);
     }
   },
 
