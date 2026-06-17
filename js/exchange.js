@@ -8,12 +8,16 @@ const Exchange = {
   searchQuery: '',
   _timer: null,
 
-  /* ── 전체 종목 로드 (84 reads, 로그인 시 1회) ── */
+  /* ── 전체 종목 로드 (84 reads, 로그인 시 1회) + 캐시 병합 ── */
   async loadFull() {
     try {
       const snap = await App.db.collection(CONFIG.COLLECTIONS.STOCKS).get();
       App.stocks = [];
       snap.forEach(doc => App.stocks.push({ id: doc.id, ...doc.data() }));
+
+      // 캐시에서 최신 가격 즉시 병합 (+1 read)
+      await this.refreshFromCache();
+
       this.render();
       AppUI.updateHeader();
     } catch (e) {
@@ -21,31 +25,61 @@ const Exchange = {
     }
   },
 
-  /* ── 캐시에서 가격만 갱신 (1 read) ── */
+  /* ── 캐시에서 가격만 갱신 (1 read) + 필요시 시세 가져오기 ── */
   async refreshFromCache() {
     try {
       const doc = await App.db.collection(CONFIG.COLLECTIONS.CONFIG).doc('priceCache').get();
-      if (!doc.exists) return;
-      const prices = doc.data().prices || {};
 
-      App.stocks.forEach(s => {
-        const p = prices[s.code];
-        if (p) {
-          s.price = p.price;
-          s.prevClose = p.prevClose;
-          s.change = p.change;
-          s.changePct = p.changePct;
-          if (p.volume) s.volume = p.volume;
+      // 캐시가 오래됐으면 이 클라이언트가 시세 가져오기 (쓰기 담당)
+      if (PriceFetch.isConfigured()) {
+        const schedule = Utils.getRefreshSchedule();
+        if (schedule.mode !== 'sleep') {
+          const staleMin = Math.max(schedule.interval * 1.5, 10); // 최소 10분
+          let isStale = true;
+
+          if (doc.exists && doc.data().updatedAt) {
+            const lastUpdate = doc.data().updatedAt.toDate();
+            const ageMin = (Date.now() - lastUpdate.getTime()) / 60000;
+            isStale = ageMin > staleMin;
+          }
+
+          if (isStale) {
+            console.log('캐시 오래됨 → 시세 가져오기 실행');
+            await PriceFetch.fetchPrices();
+            // 새로 가져온 캐시 다시 읽기
+            const freshDoc = await App.db.collection(CONFIG.COLLECTIONS.CONFIG).doc('priceCache').get();
+            if (freshDoc.exists) {
+              this._mergePrices(freshDoc.data().prices || {});
+            }
+            return;
+          }
         }
-      });
+      }
 
-      this.render();
-      AppUI.updateHeader();
-      // 차트 캐시 초기화
-      if (typeof Chart !== 'undefined') Chart.cache = {};
+      // 캐시가 신선하면 그냥 사용
+      if (doc.exists) {
+        this._mergePrices(doc.data().prices || {});
+      }
     } catch (e) {
       console.error('캐시 갱신 오류:', e);
     }
+  },
+
+  /* 가격 데이터 병합 */
+  _mergePrices(prices) {
+    App.stocks.forEach(s => {
+      const p = prices[s.code];
+      if (p) {
+        s.price = p.price;
+        s.prevClose = p.prevClose;
+        s.change = p.change;
+        s.changePct = p.changePct;
+        if (p.volume) s.volume = p.volume;
+      }
+    });
+    this.render();
+    if (typeof AppUI !== 'undefined') AppUI.updateHeader();
+    if (typeof Chart !== 'undefined') Chart.cache = {};
   },
 
   /* ── 스마트 스케줄 시작 ── */
