@@ -49,7 +49,7 @@ const Exchange = {
             // 새로 가져온 캐시 다시 읽기
             const freshDoc = await App.db.collection(CONFIG.COLLECTIONS.CONFIG).doc('priceCache').get();
             if (freshDoc.exists) {
-              this._mergePrices(freshDoc.data().prices || {});
+              this._mergePrices(freshDoc.data().prices || {}, freshDoc.data().updatedAt);
             }
             return;
           }
@@ -58,7 +58,7 @@ const Exchange = {
 
       // 캐시가 신선하면 그냥 사용
       if (doc.exists) {
-        this._mergePrices(doc.data().prices || {});
+        this._mergePrices(doc.data().prices || {}, doc.data().updatedAt);
       }
     } catch (e) {
       console.error('캐시 갱신 오류:', e);
@@ -66,7 +66,7 @@ const Exchange = {
   },
 
   /* 가격 데이터 병합 */
-  _mergePrices(prices) {
+  _mergePrices(prices, updatedAt) {
     App.stocks.forEach(s => {
       const p = prices[s.code];
       if (p) {
@@ -77,6 +77,12 @@ const Exchange = {
         if (p.volume) s.volume = p.volume;
       }
     });
+    // 시세 업데이트 시각 표시
+    const timeEl = document.getElementById('priceUpdateTime');
+    if (timeEl && updatedAt) {
+      const t = updatedAt.toDate ? updatedAt.toDate() : new Date(updatedAt);
+      timeEl.textContent = '📡 ' + t.toLocaleTimeString('ko-KR', {hour:'2-digit',minute:'2-digit'});
+    }
     this.render();
     if (typeof AppUI !== 'undefined') AppUI.updateHeader();
     if (typeof Chart !== 'undefined') Chart.cache = {};
