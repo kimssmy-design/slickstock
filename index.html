@@ -108,9 +108,12 @@
         <button class="sort-tab" data-sort="volume">거래량순</button>
         <button class="sort-tab" data-sort="fav">관심 ⭐</button>
       </div>
-      <input type="text" id="stockSearch" placeholder="종목명 또는 코드 검색" autocomplete="off"
-        style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--card);font-size:14px;font-family:inherit;margin-bottom:10px;outline:none;box-shadow:var(--shadow);"
-        oninput="Exchange.searchQuery=this.value;Exchange.render()">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <input type="text" id="stockSearch" placeholder="종목명 또는 코드 검색" autocomplete="off"
+          style="flex:1;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--card);font-size:14px;font-family:inherit;outline:none;box-shadow:var(--shadow);"
+          oninput="Exchange.searchQuery=this.value;Exchange.render()">
+        <span id="priceUpdateTime" style="font-size:10px;color:var(--text3);white-space:nowrap;margin-left:8px;"></span>
+      </div>
       <div class="stock-list" id="exchangeContent"></div>
     </div>
   </div>
