@@ -62,33 +62,65 @@ const Detail = {
 
   /* 핵심 투자 정보 카드 */
   renderStats(s) {
+    // PER/PBR 뱃지 계산
+    const perBadge = (per) => {
+      if (per === null || per === undefined) return '<span style="font-size:10px;padding:2px 6px;border-radius:10px;background:#f0f0f0;color:#888;">해당없음</span>';
+      if (per < 8)  return '<span style="font-size:10px;padding:2px 6px;border-radius:10px;background:#e8f4fd;color:#1565c0;">저평가</span>';
+      if (per <= 20) return '<span style="font-size:10px;padding:2px 6px;border-radius:10px;background:#f0f4f0;color:#2e7d32;">평균</span>';
+      return '<span style="font-size:10px;padding:2px 6px;border-radius:10px;background:#fff3e0;color:#e65100;">고평가</span>';
+    };
+    const pbrBadge = (pbr) => {
+      if (pbr === null || pbr === undefined) return '<span style="font-size:10px;padding:2px 6px;border-radius:10px;background:#f0f0f0;color:#888;">-</span>';
+      if (pbr < 1)  return '<span style="font-size:10px;padding:2px 6px;border-radius:10px;background:#e8f4fd;color:#1565c0;">저평가</span>';
+      if (pbr <= 2) return '<span style="font-size:10px;padding:2px 6px;border-radius:10px;background:#f0f4f0;color:#2e7d32;">적정</span>';
+      return '<span style="font-size:10px;padding:2px 6px;border-radius:10px;background:#fff3e0;color:#e65100;">고평가</span>';
+    };
+
     return `
       <div class="detail-info-card">
         <div class="detail-info-title">📊 핵심 투자 정보</div>
-        <div style="font-size:13px;color:var(--text2);margin-bottom:10px;">주식 고수들이 꼭 보는 숫자들!</div>
-        <div class="detail-stats">
-          <div class="stat-box">
+        <div class="detail-stats" style="gap:6px;">
+          <div class="stat-box" style="padding:8px 10px;">
             <div class="stat-label">현재가</div>
-            <div class="stat-value">${Utils.formatWon(s.price)}</div>
+            <div class="stat-value" style="font-size:14px;">${Utils.formatWon(s.price)}</div>
           </div>
-          <div class="stat-box">
+          <div class="stat-box" style="padding:8px 10px;">
             <div class="stat-label">전일 대비</div>
-            <div class="stat-value ${Utils.dir(s.change)}">${Utils.formatPct(s.changePct)}</div>
+            <div class="stat-value ${Utils.dir(s.change)}" style="font-size:14px;">${Utils.formatPct(s.changePct)}</div>
           </div>
-          <div class="stat-box">
+          <div class="stat-box" style="padding:8px 10px;">
             <div class="stat-label">전일 종가</div>
-            <div class="stat-value">${Utils.formatWon(s.prevClose || (s.price - (s.change || 0)))}</div>
+            <div class="stat-value" style="font-size:14px;">${Utils.formatWon(s.prevClose || (s.price - (s.change || 0)))}</div>
           </div>
-          <div class="stat-box">
+          <div class="stat-box" style="padding:8px 10px;">
             <div class="stat-label">업종</div>
-            <div class="stat-value" style="font-size:14px;">${Utils.esc(s.sector || '-')}</div>
+            <div class="stat-value" style="font-size:13px;">${Utils.esc(s.sector || '-')}</div>
+          </div>
+        </div>
+
+        <!-- PER / PBR 실제 수치 -->
+        <div style="font-size:11px;color:var(--text2);margin:10px 0 5px;font-weight:700;">이 종목의 투자지표</div>
+        <div style="display:flex;gap:8px;">
+          <div style="flex:1;background:var(--bg);border-radius:10px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:11px;color:var(--text2);">PER</div>
+              <div style="font-size:15px;font-weight:800;color:var(--text);">${s.per !== null && s.per !== undefined ? s.per + '배' : 'N/A'}</div>
+            </div>
+            ${perBadge(s.per)}
+          </div>
+          <div style="flex:1;background:var(--bg);border-radius:10px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:11px;color:var(--text2);">PBR</div>
+              <div style="font-size:15px;font-weight:800;color:var(--text);">${s.pbr !== null && s.pbr !== undefined ? s.pbr + '배' : 'N/A'}</div>
+            </div>
+            ${pbrBadge(s.pbr)}
           </div>
         </div>
 
         <!-- 접이식 용어 설명 -->
         <div style="margin-top:8px;">
           <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'; this.querySelector('span').textContent=this.nextElementSibling.style.display==='none'?'▶':'▼';"
-               style="cursor:pointer;padding:10px 0 6px;font-size:13px;font-weight:700;color:var(--down);display:flex;align-items:center;gap:6px;">
+               style="cursor:pointer;padding:8px 0 4px;font-size:13px;font-weight:700;color:var(--down);display:flex;align-items:center;gap:6px;">
             📚 주식 용어 쉽게 알기 <span style="font-size:10px;">▶</span>
           </div>
           <div style="display:none;">
