@@ -112,8 +112,8 @@
         <input type="text" id="stockSearch" placeholder="종목명 또는 코드 검색" autocomplete="off"
           style="flex:1;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--card);font-size:14px;font-family:inherit;outline:none;box-shadow:var(--shadow);"
           oninput="Exchange.searchQuery=this.value;Exchange.render()">
-        <span id="priceUpdateTime" style="font-size:10px;color:var(--text3);white-space:nowrap;margin-left:8px;"></span>
       </div>
+      <div id="priceUpdateTime" style="font-size:11px;color:var(--text3);text-align:right;margin:-4px 0 8px;"></div>
       <div class="stock-list" id="exchangeContent"></div>
     </div>
   </div>
