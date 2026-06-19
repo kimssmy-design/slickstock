@@ -33,8 +33,8 @@ const Exchange = {
       // 캐시가 오래됐으면 이 클라이언트가 시세 가져오기 (쓰기 담당)
       if (PriceFetch.isConfigured()) {
         const schedule = Utils.getRefreshSchedule();
-        if (schedule.mode !== 'sleep') {
-          const staleMin = Math.max(schedule.interval * 1.5, 10); // 최소 10분
+        if (schedule.mode !== 'sleep' && schedule.mode !== 'idle') {
+          const staleMin = Math.max(schedule.interval, 10); // 간격만큼 지나면 갱신
           let isStale = true;
 
           if (doc.exists && doc.data().updatedAt) {
