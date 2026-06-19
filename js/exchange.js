@@ -100,13 +100,18 @@ const Exchange = {
     const schedule = Utils.getRefreshSchedule();
 
     if (schedule.mode === 'sleep') {
-      // 수면 모드: 30분마다 스케줄 재확인만 (시세 갱신 안 함)
-      this.render(); // 수면 화면 표시
+      this.render();
       this._timer = setTimeout(() => this._scheduleNext(), 30 * 60000);
       return;
     }
 
-    this.render(); // 깨어나면 종목 리스트 복원
+    if (schedule.mode === 'idle') {
+      // 16:40~22:00: 시세 정지, 종목은 보임, 30분마다 재확인
+      this._timer = setTimeout(() => this._scheduleNext(), 30 * 60000);
+      return;
+    }
+
+    this.render();
     const ms = schedule.interval * 60000;
 
     this._timer = setTimeout(async () => {
