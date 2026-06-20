@@ -15,25 +15,28 @@ const Ranking = {
       snap.forEach(doc => {
         const data = doc.data();
         const holdings = data.holdings || {};
-        let investTotal = 0;
+        let totalCost = 0;    // 매수 원가 합계
+        let totalValue = 0;   // 현재 평가액 합계
 
         for (const [code, h] of Object.entries(holdings)) {
           const stock = App.stocks.find(s => s.code === code);
           if (stock && h.qty > 0) {
-            investTotal += h.qty * stock.price;
+            totalCost += h.qty * h.avgPrice;
+            totalValue += h.qty * stock.price;
           }
         }
 
-        const totalAsset = (data.balance || 0) + investTotal;
-        const initial = data.initialCapital || CONFIG.DEFAULT_CAPITAL;
-        const pnl = totalAsset - initial;
-        const pnlPct = initial > 0 ? (pnl / initial * 100) : 0;
+        // 보유 종목 수익률 (시드머니/추가금 무관, 순수 주가 상승률)
+        const pnl = totalValue - totalCost;
+        const pnlPct = totalCost > 0 ? (pnl / totalCost * 100) : 0;
 
         users.push({
           name: data.name || doc.id,
-          totalAsset,
+          totalValue,
+          totalCost,
           pnl,
           pnlPct,
+          holdingCount: Object.keys(holdings).length,
           isMe: App.user && doc.id === App.user.id
         });
       });
@@ -75,15 +78,16 @@ const Ranking = {
           <div class="rank-num">${rank}</div>
           <div class="rank-info">
             <div class="rank-name">${Utils.esc(u.name)} ${u.isMe ? '(나)' : ''}</div>
-            <div class="rank-total">${Utils.formatWon(u.totalAsset)}</div>
+            <div class="rank-total">${u.totalCost > 0 ? Utils.formatWon(u.pnl) : '미투자'}</div>
           </div>
           <div class="rank-rate ${Utils.dir(u.pnlPct)}">${Utils.formatPct(u.pnlPct)}</div>
         </div>`;
       }).join('');
 
       el.innerHTML = `
-        <div style="text-align:center;padding:8px 0 4px;font-size:14px;color:var(--text2);">
-          슬쩍 모의투자 수익률 랭킹
+        <div style="text-align:center;padding:8px 0 4px;">
+          <div style="font-size:14px;color:var(--text2);">슬쩍 모의투자 수익률 랭킹</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">보유 종목 평가손익 기준 (시드머니 무관)</div>
         </div>
         ${podiumHtml}
         ${listHtml}

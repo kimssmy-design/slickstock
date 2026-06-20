@@ -75,6 +75,7 @@ const Exchange = {
         s.change = p.change;
         s.changePct = p.changePct;
         if (p.volume) s.volume = p.volume;
+        if (p.per != null) s.per = p.per;
       }
     });
     // 시세 업데이트 시각 표시
