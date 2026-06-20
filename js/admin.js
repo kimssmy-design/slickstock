@@ -293,6 +293,7 @@ const Admin = {
       const u = doc.data();
       const holdings = u.holdings || {};
       let investTotal = 0;
+      let totalCost = 0;
       const holdingsList = [];
 
       for (const [code, h] of Object.entries(holdings)) {
@@ -301,13 +302,14 @@ const Admin = {
         const val = h.qty * stock.price;
         const cost = h.qty * h.avgPrice;
         investTotal += val;
+        totalCost += cost;
         holdingsList.push({ name: stock.name, qty: h.qty, pnl: val - cost, pnlPct: cost > 0 ? ((val - cost) / cost * 100) : 0 });
       }
 
       const totalAsset = (u.balance || 0) + investTotal;
-      const totalPnl = totalAsset - (u.initialCapital || CONFIG.DEFAULT_CAPITAL);
-      const totalPnlPct = (u.initialCapital || CONFIG.DEFAULT_CAPITAL) > 0
-        ? (totalPnl / (u.initialCapital || CONFIG.DEFAULT_CAPITAL) * 100) : 0;
+      // 보유 종목 수익률 (시드머니/추가금 무관)
+      const holdingsPnl = investTotal - totalCost;
+      const holdingsPnlPct = totalCost > 0 ? (holdingsPnl / totalCost * 100) : 0;
 
       holdingsList.sort((a, b) => b.pnlPct - a.pnlPct);
 
@@ -326,8 +328,8 @@ const Admin = {
             <span>${Utils.formatWon(investTotal)}</span>
           </div>
           <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-            <span style="color:var(--text2);">총 수익률</span>
-            <b class="${Utils.dir(totalPnl)}">${Utils.formatPct(totalPnlPct)}</b>
+            <span style="color:var(--text2);">보유종목 수익률</span>
+            <b class="${Utils.dir(holdingsPnl)}">${totalCost > 0 ? Utils.formatPct(holdingsPnlPct) : '미투자'}</b>
           </div>
           ${holdingsList.length > 0 ? '<div style="border-top:1px solid var(--border);padding-top:6px;font-size:11px;color:var(--text2);">보유 종목</div>' : ''}
           ${holdingsList.map(h => `
