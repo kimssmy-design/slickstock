@@ -25,9 +25,18 @@ const Exchange = {
     }
   },
 
-  /* ── 캐시에서 가격만 갱신 (1 read) + 필요시 시세 가져오기 ── */
+  /* ── 캐시에서 가격만 갱신 + 설정 재로드 + 필요시 시세 가져오기 ── */
   async refreshFromCache() {
     try {
+      // 관리자 설정 재로드 (강제 개장/폐장 반영)
+      try {
+        const cfgDoc = await App.db.collection(CONFIG.COLLECTIONS.CONFIG).doc('settings').get();
+        if (cfgDoc.exists) {
+          const d = cfgDoc.data();
+          App.config.marketOverride = d.marketOverride != null ? d.marketOverride : null;
+        }
+      } catch (e) { /* 설정 읽기 실패해도 계속 진행 */ }
+
       const doc = await App.db.collection(CONFIG.COLLECTIONS.CONFIG).doc('priceCache').get();
 
       // 캐시가 오래됐으면 이 클라이언트가 시세 가져오기 (쓰기 담당)
