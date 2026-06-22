@@ -19,9 +19,14 @@ const ACHIEVEMENTS = [
 ];
 
 const Account = {
-  render() {
+  async render() {
     const el = document.getElementById('accountContent');
     if (!el || !App.user) return;
+
+    // 기존 유저 카운터 보정 (1회만 실행)
+    if ((App.user.tradeCount || 0) === 0) {
+      await this._backfillCounters();
+    }
 
     // 보유 종목 평가
     let investTotal = 0;
@@ -125,6 +130,37 @@ const Account = {
         <div id="historyContent" style="display:none;margin-top:8px;"></div>
       </div>
     `;
+  },
+
+  /* 기존 유저 거래 카운터 보정 (1회만) */
+  async _backfillCounters() {
+    try {
+      const snap = await App.db.collection(CONFIG.COLLECTIONS.TRANSACTIONS)
+        .where('userId', '==', App.user.id)
+        .get();
+
+      if (snap.empty) return;
+
+      let tradeCount = 0;
+      let sellCount = 0;
+      snap.forEach(doc => {
+        tradeCount++;
+        if (doc.data().type === 'sell') sellCount++;
+      });
+
+      // Firestore에 저장
+      await App.db.collection(CONFIG.COLLECTIONS.USERS).doc(App.user.id).update({
+        tradeCount: tradeCount,
+        sellCount: sellCount
+      });
+
+      // 로컬에도 반영
+      App.user.tradeCount = tradeCount;
+      App.user.sellCount = sellCount;
+      console.log('카운터 보정 완료:', tradeCount, '거래,', sellCount, '매도');
+    } catch (e) {
+      console.error('카운터 보정 실패:', e);
+    }
   },
 
   /* 업적 체크 */
