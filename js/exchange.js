@@ -17,6 +17,8 @@ const Exchange = {
 
       // 캐시에서 최신 가격 즉시 병합 (+1 read)
       await this.refreshFromCache();
+      // 인기 종목 로드 (+1 read)
+      await this.loadPopular();
 
       this.render();
       AppUI.updateHeader();
@@ -134,6 +136,28 @@ const Exchange = {
     if (this._timer) clearTimeout(this._timer);
   },
 
+  /* ── 인기 종목 로드 (1 read) ── */
+  popularStocks: [],
+  async loadPopular() {
+    try {
+      const doc = await App.db.collection(CONFIG.COLLECTIONS.CONFIG).doc('popular').get();
+      if (!doc.exists) return;
+      const data = doc.data();
+      const today = new Date().toISOString().split('T')[0];
+      if (data.date !== today) return; // 오늘 데이터만
+
+      const counts = data.counts || {};
+      this.popularStocks = Object.entries(counts)
+        .map(([code, cnt]) => {
+          const stock = App.stocks.find(s => s.code === code);
+          return stock ? { code, name: stock.name, count: cnt } : null;
+        })
+        .filter(Boolean)
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+    } catch (e) { console.error('인기 종목 로드 실패:', e); }
+  },
+
   /* ── 거래소 탭 렌더링 ── */
   render() {
     const el = document.getElementById('exchangeContent');
@@ -152,6 +176,24 @@ const Exchange = {
     }
     if (sortTabs) sortTabs.style.display = 'flex';
     if (searchBar) searchBar.style.display = 'block';
+
+    // 인기 종목 표시
+    const popEl = document.getElementById('popularStocks');
+    if (popEl && this.popularStocks.length > 0) {
+      popEl.style.display = 'block';
+      popEl.innerHTML = '<div style="font-size:13px;font-weight:700;margin-bottom:6px;">🔥 지금 인기 있는 종목</div>' +
+        '<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;">' +
+        this.popularStocks.map((s, i) => {
+          const medal = ['🥇','🥈','🥉','4','5'][i];
+          return `<div onclick="Detail.open('${s.code}')" style="cursor:pointer;min-width:100px;background:var(--card);border-radius:10px;padding:10px 12px;box-shadow:var(--shadow);text-align:center;">
+            <div style="font-size:16px;">${medal}</div>
+            <div style="font-size:13px;font-weight:700;margin-top:2px;">${Utils.esc(s.name)}</div>
+            <div style="font-size:11px;color:var(--text2);">${s.count}건 거래</div>
+          </div>`;
+        }).join('') + '</div>';
+    } else if (popEl) {
+      popEl.style.display = 'none';
+    }
 
     const stocks = this.getSortedStocks();
     if (stocks.length === 0) {

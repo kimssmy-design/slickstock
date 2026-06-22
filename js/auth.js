@@ -32,6 +32,8 @@ const Auth = {
         balance: data.balance || 0,
         initialCapital: data.initialCapital || CONFIG.DEFAULT_CAPITAL,
         holdings: data.holdings || {},
+        tradeCount: data.tradeCount || 0,
+        sellCount: data.sellCount || 0,
         createdAt: data.createdAt
       };
       localStorage.setItem('sl_user', name);
@@ -120,6 +122,8 @@ const Auth = {
         balance: data.balance || 0,
         initialCapital: data.initialCapital || CONFIG.DEFAULT_CAPITAL,
         holdings: data.holdings || {},
+        tradeCount: data.tradeCount || 0,
+        sellCount: data.sellCount || 0,
         createdAt: data.createdAt
       };
       return true;
@@ -150,6 +154,8 @@ const Auth = {
         App.user.balance = data.balance || 0;
         App.user.initialCapital = data.initialCapital || CONFIG.DEFAULT_CAPITAL;
         App.user.holdings = data.holdings || {};
+        App.user.tradeCount = data.tradeCount || 0;
+        App.user.sellCount = data.sellCount || 0;
       }
     } catch (e) {
       console.error('사용자 새로고침 오류:', e);

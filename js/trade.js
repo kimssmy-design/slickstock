@@ -213,8 +213,29 @@ const Trade = {
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       });
 
+      // 거래 카운터 업데이트
+      const counterUpdate = { tradeCount: firebase.firestore.FieldValue.increment(1) };
+      if (!isBuy) counterUpdate.sellCount = firebase.firestore.FieldValue.increment(1);
+      await App.db.collection(CONFIG.COLLECTIONS.USERS).doc(App.user.id).update(counterUpdate);
+
+      // 인기 종목 집계 (매수만)
+      if (isBuy) {
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          const popRef = App.db.collection(CONFIG.COLLECTIONS.CONFIG).doc('popular');
+          const popDoc = await popRef.get();
+          let popData = popDoc.exists ? popDoc.data() : {};
+          if (popData.date !== today) popData = { date: today, counts: {} };
+          popData.counts[this.stock.code] = (popData.counts[this.stock.code] || 0) + 1;
+          await popRef.set(popData);
+        } catch (e) { /* 인기 종목 집계 실패해도 무시 */ }
+      }
+
       // 로컬 상태 갱신
       await Auth.refreshUser();
+      // 카운터도 로컬에 반영
+      App.user.tradeCount = (App.user.tradeCount || 0) + 1;
+      if (!isBuy) App.user.sellCount = (App.user.sellCount || 0) + 1;
 
       Utils.toast(
         isBuy
