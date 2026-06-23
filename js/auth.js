@@ -34,6 +34,7 @@ const Auth = {
         holdings: data.holdings || {},
         tradeCount: data.tradeCount || 0,
         sellCount: data.sellCount || 0,
+        achievementsClaimed: data.achievementsClaimed || [],
         createdAt: data.createdAt
       };
       localStorage.setItem('sl_user', name);
@@ -124,6 +125,7 @@ const Auth = {
         holdings: data.holdings || {},
         tradeCount: data.tradeCount || 0,
         sellCount: data.sellCount || 0,
+        achievementsClaimed: data.achievementsClaimed || [],
         createdAt: data.createdAt
       };
       return true;
@@ -156,6 +158,7 @@ const Auth = {
         App.user.holdings = data.holdings || {};
         App.user.tradeCount = data.tradeCount || 0;
         App.user.sellCount = data.sellCount || 0;
+        App.user.achievementsClaimed = data.achievementsClaimed || [];
       }
     } catch (e) {
       console.error('사용자 새로고침 오류:', e);
