@@ -69,13 +69,16 @@ const Account = {
     const claimed = App.user.achievementsClaimed || [];
 
     el.innerHTML = `
-      <!-- 업적 배지 -->
+      <!-- 업적 배지 (접기) -->
       <div style="margin-bottom:14px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div onclick="Account.toggleAchievements()" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--card);border-radius:12px;box-shadow:var(--shadow);">
           <span style="font-size:14px;font-weight:700;">🏅 나의 업적 (${earned.length}/${ACHIEVEMENTS.length})</span>
-          <span style="font-size:11px;color:var(--accent);font-weight:700;">${earned.length === ACHIEVEMENTS.length ? '🎉 올 클리어!' : '보상 수령 가능 ' + earned.filter(id => !claimed.includes(id)).length + '개'}</span>
+          <span style="font-size:12px;color:var(--text2);">
+            ${earned.filter(id => !claimed.includes(id)).length > 0 ? '<span style="color:var(--accent);font-weight:700;">보상 ' + earned.filter(id => !claimed.includes(id)).length + '개 수령 가능!</span>' : ''}
+            <span id="achvToggle">▶</span>
+          </span>
         </div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
+        <div id="achvContent" style="display:none;margin-top:8px;">
           ${ACHIEVEMENTS.map(a => {
             const isEarned = earned.includes(a.id);
             const isClaimed = claimed.includes(a.id);
@@ -169,6 +172,16 @@ const Account = {
     if (earned.length >= 19) earned.push('all_clear');
 
     return earned;
+  },
+
+  /* 업적 토글 */
+  _achvOpen: false,
+  toggleAchievements() {
+    this._achvOpen = !this._achvOpen;
+    const el = document.getElementById('achvContent');
+    const icon = document.getElementById('achvToggle');
+    if (el) el.style.display = this._achvOpen ? 'block' : 'none';
+    if (icon) icon.textContent = this._achvOpen ? '▼' : '▶';
   },
 
   /* 보상 수령 */
