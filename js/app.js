@@ -96,9 +96,64 @@ const AppUI = {
     // 기본 탭 렌더
     this.switchTab('account');
 
-    // 공지 팝업 (다신 보지 않기 체크)
+    // 고정 공지 팝업 (다신 보지 않기 체크)
     if (!localStorage.getItem('sl_notice_v2')) {
       document.getElementById('noticePopup').classList.add('show');
+    }
+
+    // 관리자 동적 공지 로드
+    this.loadDynamicNotices();
+  },
+
+  /* ── 동적 공지 로드 (Firestore) ── */
+  async loadDynamicNotices() {
+    try {
+      const doc = await App.db.collection(CONFIG.COLLECTIONS.CONFIG).doc('notices').get();
+      if (!doc.exists) return;
+      const items = doc.data().items || [];
+      const now = Date.now();
+      const dismissed = JSON.parse(localStorage.getItem('sl_dismissed_notices') || '[]');
+      const active = items.filter(n => n.expiresAt > now && !dismissed.includes(n.id));
+      if (active.length === 0) return;
+
+      this._pendingNotices = active;
+      this._showNextDynamicNotice();
+    } catch (e) { /* 공지 로드 실패 무시 */ }
+  },
+
+  _pendingNotices: [],
+  _showNextDynamicNotice() {
+    if (this._pendingNotices.length === 0) return;
+    const n = this._pendingNotices[0];
+    const el = document.getElementById('dynamicNotice');
+    if (!el) return;
+
+    el.innerHTML = `
+      <div class="notice-modal">
+        <div style="font-size:32px;margin-bottom:8px;">📢</div>
+        <div class="notice-title">${Utils.esc(n.headline)}</div>
+        <div class="notice-body" style="text-align:center;margin:16px 0;">
+          <p style="white-space:pre-line;">${Utils.esc(n.content)}</p>
+        </div>
+        <div class="notice-btns">
+          <button class="notice-btn sub" onclick="AppUI.dismissDynamicNotice('${n.id}',true)">다신 보지 않기</button>
+          <button class="notice-btn main" onclick="AppUI.dismissDynamicNotice('${n.id}',false)">닫기</button>
+        </div>
+      </div>`;
+    el.classList.add('show');
+  },
+
+  dismissDynamicNotice(id, never) {
+    if (never) {
+      const dismissed = JSON.parse(localStorage.getItem('sl_dismissed_notices') || '[]');
+      dismissed.push(id);
+      localStorage.setItem('sl_dismissed_notices', JSON.stringify(dismissed));
+    }
+    document.getElementById('dynamicNotice').classList.remove('show');
+    this._pendingNotices.shift();
+    // 다음 공지 있으면 0.5초 후 표시
+    if (this._pendingNotices.length > 0) {
+      setTimeout(() => this._showNextDynamicNotice(), 500);
     }
   },
 
