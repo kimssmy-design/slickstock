@@ -69,6 +69,9 @@ const Account = {
     const claimed = App.user.achievementsClaimed || [];
 
     el.innerHTML = `
+      <!-- 공지사항 -->
+      ${this._renderNotices()}
+
       <!-- 업적 배지 (접기) -->
       <div style="margin-bottom:14px;">
         <div onclick="Account.toggleAchievements()" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--card);border-radius:12px;box-shadow:var(--shadow);">
@@ -172,6 +175,48 @@ const Account = {
     if (earned.length >= 19) earned.push('all_clear');
 
     return earned;
+  },
+
+  /* 공지사항 렌더 */
+  _noticeIdx: 0,
+  _noticeOpen: false,
+
+  _renderNotices() {
+    const notices = App.notices || [];
+    if (notices.length === 0) return '';
+
+    const idx = Math.min(this._noticeIdx, notices.length - 1);
+    const n = notices[idx];
+    const total = notices.length;
+
+    if (!this._noticeOpen) {
+      return `<div onclick="Account._noticeOpen=true;Account.render();" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:12px 14px;background:var(--card);border-radius:12px;box-shadow:var(--shadow);margin-bottom:12px;border-left:3px solid var(--accent);">
+        <span style="font-size:16px;">📢</span>
+        <span style="flex:1;font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">공지사항: ${Utils.esc(n.headline)}</span>
+        <span style="font-size:12px;color:var(--text2);">▶</span>
+      </div>`;
+    }
+
+    const expDate = new Date(n.expiresAt);
+    const expStr = (expDate.getMonth()+1) + '/' + expDate.getDate();
+
+    return `<div style="background:var(--card);border-radius:12px;box-shadow:var(--shadow);margin-bottom:12px;border-left:3px solid var(--accent);overflow:hidden;">
+      <div onclick="Account._noticeOpen=false;Account.render();" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border);">
+        <span style="font-size:16px;">📢</span>
+        <span style="flex:1;font-size:13px;font-weight:700;">공지사항</span>
+        <span style="font-size:12px;color:var(--text2);">▼</span>
+      </div>
+      <div style="padding:14px;">
+        <div style="font-size:16px;font-weight:800;margin-bottom:6px;">${Utils.esc(n.headline)}</div>
+        <div style="font-size:13px;line-height:1.7;color:#444;white-space:pre-line;">${Utils.esc(n.content)}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:8px;">~${expStr}까지</div>
+      </div>
+      ${total > 1 ? `<div style="display:flex;justify-content:center;align-items:center;gap:16px;padding:8px 0 12px;border-top:1px solid var(--border);">
+        <button onclick="Account._noticeIdx=Math.max(0,Account._noticeIdx-1);Account.render();" style="border:none;background:none;font-size:16px;cursor:pointer;color:${idx > 0 ? 'var(--text)' : 'var(--text3)'};">◀</button>
+        <span style="font-size:12px;color:var(--text2);">${idx + 1} / ${total}</span>
+        <button onclick="Account._noticeIdx=Math.min(${total - 1},Account._noticeIdx+1);Account.render();" style="border:none;background:none;font-size:16px;cursor:pointer;color:${idx < total - 1 ? 'var(--text)' : 'var(--text3)'};">▶</button>
+      </div>` : ''}
+    </div>`;
   },
 
   /* 업적 토글 */
